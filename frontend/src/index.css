@@ -1,0 +1,35 @@
+:root {
+  --color-primary: #00a5ff;
+  --color-danger: #e21010;
+
+  --color-bg-white: #fff;
+  --color-bg-light: #f0f0f0;
+  --color-bg-muted: #eee;
+  --color-bg-accent: #eef;
+
+  --color-text: #333;
+  --color-text-sub: #666;
+  --color-text-muted: #999;
+
+  --color-border: #ddd;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
