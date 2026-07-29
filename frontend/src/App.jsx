@@ -4,20 +4,16 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Welcome from './components/Welcome';
 import MapVIew from './components/MapVIew';
+import { me } from './api/auth';
 
 function App() {
   const [user, setUser] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
 
-  const url = 'http://localhost:8888/kadai10_prototype/backend/auth/me.php';
-
   useEffect(() => {
     const checkLogin = async () => {
       try {
-        const res = await fetch(url, {
-          credentials: 'include',
-        });
-        const data = await res.json();
+        const data = await me();
 
         if (data.success) {
           setUser(data.user);

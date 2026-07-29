@@ -9,7 +9,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $id = $_GET['id'] ?? '';
 
-    $sql = "SELECT pins.id, pins.category_id, pins.name, pins.lat, pins.lng, pins.status, categories.name AS category_name
+    $sql = "SELECT pins.id, pins.category_id, pins.name, pins.lat, pins.lng, pins.status, categories.color, categories.name AS category_name
     FROM pins
     LEFT JOIN categories ON pins.category_id = categories.id
     WHERE pins.id = :id AND pins.user_id = :user_id";

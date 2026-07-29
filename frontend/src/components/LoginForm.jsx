@@ -1,28 +1,16 @@
 import { useState } from 'react';
+import { login } from '../api/auth';
 
 function LoginForm({ setUser, setShowRegister }) {
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  const url = 'http://localhost:8888/kadai10_prototype/backend/auth/login.php';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const formData = new URLSearchParams({
-        username: name,
-        password: password,
-      });
-
-      const res = await fetch(url, {
-        method: 'POST',
-        credentials: 'include', // セッションCookieを送受信するのに必須
-        body: formData,
-      });
-
-      const data = await res.json();
+      const data = await login(username, password);
 
       if (!data.success) {
         setError(data.message);
@@ -43,7 +31,7 @@ function LoginForm({ setUser, setShowRegister }) {
       {error && <p>エラー: {error}</p>}
       <form onSubmit={handleSubmit}>
         <label htmlFor='username'>
-          ユーザー名: <input type='text' id='username' required value={name} onChange={(e) => setName(e.target.value)} />
+          ユーザー名: <input type='text' id='username' required value={username} onChange={(e) => setUsername(e.target.value)} />
         </label>
         <label htmlFor='password'>
           パスワード: <input type='password' id='password' required value={password} onChange={(e) => setPassword(e.target.value)} />

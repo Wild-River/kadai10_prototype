@@ -31,6 +31,14 @@ function MapVIew() {
       });
     };
     initMap();
+
+    return () => {
+      // ここがクリーンアップ処理
+      // この先マーカーにクリックイベントを付けたときです(例えば「地図をクリックして新規ピン作成」のリスナー)。イベントリスナーはコンポーネントが消えても自動では外れない
+      // google.maps.event.clearInstanceListeners(mapInstanceRef.current);
+    };
+
+    // pinsを取得し、AdvancedMarkerElement+PinElementでマーカーを立てる(backgroundにcategory.colorを使う)
   }, [mapId]); // ← mapIdが変わったら再実行
   // useEffectの戻り値としてクリーンアップ関数
 

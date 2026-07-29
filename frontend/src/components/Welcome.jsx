@@ -1,11 +1,9 @@
+import { logout } from '../api/auth';
+
 function Welcome({ user, setUser }) {
-  const url = 'http://localhost:8888/kadai10_prototype/backend/auth/logout.php';
   const handleLogout = async () => {
     try {
-      await fetch(url, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await logout();
       setUser(null);
     } catch (e) {
       console.error(e);
