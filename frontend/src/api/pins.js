@@ -6,3 +6,7 @@ export async function getPins() {
     });
     return res.json();
 }
+
+export async function getCategories() {
+
+}

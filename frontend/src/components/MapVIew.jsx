@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { loadGoogleMaps } from '../api/googleMaps';
+import { getPins } from '../api/pins';
 const MAP_IDS = {
   monochro: import.meta.env.VITE_GOOGLE_MAP_ID,
   normal: import.meta.env.VITE_GOOGLE_MAP_ID_NORMAL,
@@ -29,18 +30,34 @@ function MapVIew() {
         streetViewControl: false, // ストリートビューの人形アイコン
         fullscreenControl: false, // 全画面ボタン
       });
+      renderedMapIdRef.current = mapId; //今回mapIdという値で地図を作ったことを保存
+
+      const data = await getPins();
+      data.pins.forEach((pin) => {
+        const pinElement = new google.maps.marker.PinElement({
+          background: pin.color || '#666',
+          borderColor: 'white',
+          scale: 1.2,
+        });
+
+        new google.maps.marker.AdvancedMarkerElement({
+          position: { lat: Number(pin.lat), lng: Number(pin.lng) },
+          map: mapInstanceRef.current, // 作ったばかりの地図インスタンス
+          content: pinElement.element,
+        });
+      });
     };
     initMap();
 
     return () => {
       // ここがクリーンアップ処理
-      // この先マーカーにクリックイベントを付けたときです(例えば「地図をクリックして新規ピン作成」のリスナー)。イベントリスナーはコンポーネントが消えても自動では外れない
+      // この先マーカーにクリックイベントを付けたとき(例えば「地図をクリックして新規ピン作成」のリスナー)。
+      // イベントリスナーはコンポーネントが消えても自動では外れない
       // google.maps.event.clearInstanceListeners(mapInstanceRef.current);
     };
 
     // pinsを取得し、AdvancedMarkerElement+PinElementでマーカーを立てる(backgroundにcategory.colorを使う)
-  }, [mapId]); // ← mapIdが変わったら再実行
-  // useEffectの戻り値としてクリーンアップ関数
+  }, [mapId]); // mapIdが変わったら再実行
 
   return (
     <>
