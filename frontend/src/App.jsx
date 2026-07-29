@@ -3,6 +3,7 @@ import './App.css';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Welcome from './components/Welcome';
+import MapVIew from './components/MapVIew';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -30,7 +31,20 @@ function App() {
     checkLogin();
   }, []); //コンポーネントが最初に描画されたときに1回だけ実行
 
-  return <>{user ? <Welcome user={user} setUser={setUser} /> : showRegister ? <RegisterForm setUser={setUser} setShowRegister={setShowRegister} /> : <LoginForm setUser={setUser} setShowRegister={setShowRegister} />}</>;
+  return (
+    <>
+      {user ? (
+        <>
+          <Welcome user={user} setUser={setUser} />
+          <MapVIew />
+        </>
+      ) : showRegister ? (
+        <RegisterForm setUser={setUser} setShowRegister={setShowRegister} />
+      ) : (
+        <LoginForm setUser={setUser} setShowRegister={setShowRegister} />
+      )}
+    </>
+  );
 }
 
 export default App;
