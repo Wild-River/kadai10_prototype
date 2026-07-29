@@ -4,9 +4,9 @@ require_once __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
-// username/emailの重複チェック（usersテーブルにUNIQUE制約があるので、try-catchでPDOExceptionを拾い、重複エラー（SQLSTATE 23000）を判定してユーザーに分かるメッセージを返すのが丁寧）
+// username/emailの重複チェック
+// usersテーブルにUNIQUE制約があるので、try-catchでPDOExceptionを拾い、重複エラー（SQLSTATE 23000）を判定してユーザーに分かるメッセージを返す
 // password_hash($password, PASSWORD_DEFAULT)で保存
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $email = $_POST['email'] ?? '';
