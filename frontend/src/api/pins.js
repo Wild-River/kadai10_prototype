@@ -7,8 +7,9 @@ export async function getPins() {
     return res.json();
 }
 
-export async function createPin({ categoryId, name, lat, lng, status, tags = [], blocks = [] }) {
+export async function createPin({ id, categoryId, name, lat, lng, status, tags = [], blocks = [] }) {
     const params = new URLSearchParams();
+    params.append('id', id);
     params.append('category_id', categoryId);
     params.append('name', name);
     params.append('lat', lat);
@@ -49,3 +50,51 @@ export async function uploadImage(file) {
     return res.json();
 }
 
+export async function getPin(id) {
+    const res = await fetch(`${BASE_URL}/show.php?id=${id}`, {
+        credentials: 'include',
+    });
+    return res.json();
+}
+
+export async function updatePin({ id, categoryId, name, lat, lng, status, tags = [], blocks = [] }) {
+    const params = new URLSearchParams();
+    params.append('id', id);
+    params.append('category_id', categoryId);
+    params.append('name', name);
+    params.append('lat', lat);
+    params.append('lng', lng);
+    params.append('status', status);
+
+    tags.forEach((tagId) => {
+        params.append('tags[]', tagId);
+    });
+
+    blocks.forEach((block, index) => {
+        params.append(`blocks[${index}][type]`, block.type);
+        if (block.type === 'text') {
+            params.append(`blocks[${index}][content]`, block.content)
+        } else if (block.type === 'image') {
+            params.append(`blocks[${index}][url]`, block.url)
+        }
+    });
+
+    const res = await fetch(`${BASE_URL}/edit.php`, {
+        method: 'POST',
+        credentials: 'include',
+        body: params,
+    });
+    return res.json();
+}
+
+export async function deletePin(id) {
+    const params = new URLSearchParams();
+    params.append('id', id);
+
+    const res = await fetch(`${BASE_URL}/delete.php`, {
+        method: 'POST',
+        credentials: 'include',
+        body: params
+    });
+    return res.json();
+}

@@ -32,7 +32,7 @@ function App() {
       {user ? (
         <>
           <Welcome user={user} setUser={setUser} />
-          <MapVIew />
+          <MapVIew user={user} />
         </>
       ) : showRegister ? (
         <RegisterForm setUser={setUser} setShowRegister={setShowRegister} />

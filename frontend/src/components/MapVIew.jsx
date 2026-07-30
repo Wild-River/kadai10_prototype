@@ -2,18 +2,22 @@ import { useState, useEffect, useRef } from 'react';
 import { loadGoogleMaps } from '../api/googleMaps';
 import { getPins } from '../api/pins';
 import PinPanel from './PinPanel';
+import PinDetail from './PinDetail';
 const MAP_IDS = {
   monochro: import.meta.env.VITE_GOOGLE_MAP_ID,
   normal: import.meta.env.VITE_GOOGLE_MAP_ID_NORMAL,
 };
 
-function MapVIew() {
+function MapVIew({ user }) {
   const mapRef = useRef(); // 地図オブジェクトを作成 useRefで保持する
   const mapInstanceRef = useRef(null);
   const [mapId, setMapId] = useState(MAP_IDS.monochro);
   const renderedMapIdRef = useRef(null);
   const [pin, setPin] = useState({ lat: 0, lng: 0 });
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [selectedPinId, setSelectedPinId] = useState('');
+  const markersRef = useRef({}); // {[pin.id] : markerインスタンス}
+  const [editingPin, setEditingPin] = useState(null);
 
   const addMarkerToMap = (pin) => {
     const pinElement = new google.maps.marker.PinElement({
@@ -22,10 +26,17 @@ function MapVIew() {
       scale: 1.2,
     });
 
-    new google.maps.marker.AdvancedMarkerElement({
+    const marker = new google.maps.marker.AdvancedMarkerElement({
       position: { lat: Number(pin.lat), lng: Number(pin.lng) },
       map: mapInstanceRef.current, // 作ったばかりの地図インスタンス
       content: pinElement.element,
+    });
+
+    markersRef.current[pin.id] = marker;
+
+    // マーカーにgmp-clickイベントを追加し、クリックされたらstateで保持する
+    marker.addListener('gmp-click', () => {
+      setSelectedPinId(pin.id);
     });
   };
 
@@ -68,20 +79,47 @@ function MapVIew() {
     };
 
     // pinsを取得し、AdvancedMarkerElement+PinElementでマーカーを立てる(backgroundにcategory.colorを使う)
+    // 各マーカーにクリックリスナーを追加、クリックしたpinのidをstateに持つ
   }, [mapId]); // mapIdが変わったら再実行
 
   return (
     <>
       <button onClick={() => setMapId((prev) => (prev === MAP_IDS.monochro ? MAP_IDS.normal : MAP_IDS.monochro))}>地図スタイル切替</button>
       <div id='map' style={{ height: 800 }} ref={mapRef}></div>
-      {isPanelOpen && (
+      {(isPanelOpen || editingPin) && (
         <PinPanel
-          lat={pin.lat}
-          lng={pin.lng}
-          onClose={() => setIsPanelOpen(false)}
+          lat={editingPin ? editingPin.pin.lat : pin.lat}
+          lng={editingPin ? editingPin.pin.lng : pin.lng}
+          editingPin={editingPin}
+          onClose={() => {
+            setIsPanelOpen(false);
+            setEditingPin(null);
+          }}
           onCreated={(newPin) => {
             addMarkerToMap(newPin);
             setIsPanelOpen(false);
+          }}
+          onUpdated={(updatedPin) => {
+            markersRef.current[updatedPin.id].map = null; // 古いマーカーを消す
+            delete markersRef.current[updatedPin.id];
+            addMarkerToMap(updatedPin); // 新しい内容でマーカーを立て直す
+            setEditingPin(null);
+          }}
+        />
+      )}
+      {selectedPinId && (
+        <PinDetail
+          id={selectedPinId}
+          currentUserId={user.id}
+          onClose={() => setSelectedPinId('')}
+          onEdit={(data) => {
+            setEditingPin(data);
+            setSelectedPinId('');
+          }}
+          onDeleted={() => {
+            markersRef.current[selectedPinId].map = null; // 地図からマーカーを消す
+            delete markersRef.current[selectedPinId];
+            setSelectedPinId('');
           }}
         />
       )}

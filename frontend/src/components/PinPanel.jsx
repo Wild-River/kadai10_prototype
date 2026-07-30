@@ -1,14 +1,24 @@
 import { useEffect, useState } from 'react';
 import { getCategories } from '../api/categories';
 import { getTags } from '../api/tags';
-import { createPin, uploadImage } from '../api/pins';
+import { createPin, uploadImage, updatePin } from '../api/pins';
 
-function PinPanel({ lat, lng, onClose, onCreated }) {
-  const [categoryId, setCategoryId] = useState('');
-  const [name, setName] = useState('');
-  const [status, setStatus] = useState('draft');
-  const [selectedTagIds, setSelectedTagIds] = useState([]);
-  const [blocks, setBlocks] = useState([]);
+function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
+  const [categoryId, setCategoryId] = useState(editingPin ? editingPin.pin.category_id : '');
+  const [name, setName] = useState(editingPin ? editingPin.pin.name : '');
+  const [status, setStatus] = useState(editingPin ? editingPin.pin.status : 'draft');
+  const [selectedTagIds, setSelectedTagIds] = useState(editingPin ? editingPin.pinTagIds : []);
+
+  const [blocks, setBlocks] = useState(
+    editingPin
+      ? editingPin.blocks.map((b) => ({
+          id: crypto.randomUUID(),
+          type: b.type,
+          content: b.content,
+          url: b.url,
+        }))
+      : [],
+  );
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
   const [error, setError] = useState('');
@@ -64,15 +74,26 @@ function PinPanel({ lat, lng, onClose, onCreated }) {
         }),
       );
 
-      const data = await createPin({
-        categoryId,
-        name,
-        lat,
-        lng,
-        status,
-        tags: selectedTagIds,
-        blocks: uploadBlocks,
-      });
+      const data = editingPin
+        ? await updatePin({
+            id: editingPin.pin.id,
+            categoryId,
+            name,
+            lat,
+            lng,
+            status,
+            tags: selectedTagIds,
+            blocks: uploadBlocks,
+          })
+        : await createPin({
+            categoryId,
+            name,
+            lat,
+            lng,
+            status,
+            tags: selectedTagIds,
+            blocks: uploadBlocks,
+          });
 
       if (!data.success) {
         setError(data.message);
@@ -80,11 +101,13 @@ function PinPanel({ lat, lng, onClose, onCreated }) {
       }
 
       const selectedCategory = categories.find((c) => String(c.id) === String(categoryId));
-      onCreated({
-        lat,
-        lng,
-        color: selectedCategory?.color,
-      });
+      const resultPin = { id: editingPin ? editingPin.pin.id : data.id, lat, lng, color: selectedCategory?.color };
+
+      if (editingPin) {
+        onUpdated(resultPin);
+      } else {
+        onCreated(resultPin);
+      }
     } catch (err) {
       console.error(err);
       setError('保存に失敗しました');
