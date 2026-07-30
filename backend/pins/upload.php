@@ -43,5 +43,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
         exit;
     }
 
-    echo json_encode(['success' => true, 'url' => '/kadai10_prototype/uploads/pins/' . $filename]);
+    echo json_encode(['success' => true, 'url' => '/uploads/pins/' . $filename]);
 }

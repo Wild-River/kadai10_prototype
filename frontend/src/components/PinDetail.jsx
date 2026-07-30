@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getPin, deletePin } from '../api/pins';
 import { getTags } from '../api/tags';
 
-const BACKEND_ORIGIN = 'http://localhost:8888';
+const BACKEND_ORIGIN = import.meta.env.VITE_SITE_BASE_URL;
 
 function PinDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
   const [pin, setPin] = useState(null);

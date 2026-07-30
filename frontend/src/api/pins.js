@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8888/kadai10_prototype/backend/pins';
+const BASE_URL = `${import.meta.env.VITE_SITE_BASE_URL}/backend/pins`;
 
 export async function getPins() {
     const res = await fetch(`${BASE_URL}/index.php`, {

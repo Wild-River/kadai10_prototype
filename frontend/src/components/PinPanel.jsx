@@ -3,7 +3,7 @@ import { getCategories } from '../api/categories';
 import { getTags } from '../api/tags';
 import { createPin, uploadImage, updatePin } from '../api/pins';
 
-const BACKEND_ORIGIN = 'http://localhost:8888';
+const BACKEND_ORIGIN = import.meta.env.VITE_SITE_BASE_URL;
 
 function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
   const [categoryId, setCategoryId] = useState(editingPin ? editingPin.pin.category_id : '');

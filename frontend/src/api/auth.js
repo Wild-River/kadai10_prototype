@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8888/kadai10_prototype/backend/auth';
+const BASE_URL = `${import.meta.env.VITE_SITE_BASE_URL}/backend/auth`;
 
 export async function login(username, password) {
     const res = await fetch(`${BASE_URL}/login.php`, {
