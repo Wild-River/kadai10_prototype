@@ -12,8 +12,15 @@ function Welcome({ user, setUser }) {
 
   return (
     <>
-      <p>ようこそ！{user.username}さん！</p>
-      <button onClick={handleLogout}>ログアウト</button>
+      <div id='header'>
+        <span id='user-info'>{user.username}さん</span>
+        <h1 id='app-logo'>おでかけマップ</h1>
+        <div>
+          <button id='logout-btn' onClick={handleLogout}>
+            ログアウト
+          </button>
+        </div>
+      </div>
     </>
   );
 }

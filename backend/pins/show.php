@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 
 $id = $_GET['id'] ?? '';
 
-$sql = "SELECT pins.id, pins.category_id, pins.name, pins.status, pins.lat, pins.lng, pins.user_id, categories.color, categories.name AS category_name
+$sql = "SELECT pins.id, pins.category_id, pins.name, pins.status, pins.lat, pins.lng, pins.user_id, categories.color, categories.icon, categories.name AS category_name
 FROM pins
 LEFT JOIN categories ON pins.category_id = categories.id
 WHERE pins.id = :id AND (pins.status = 'published' OR pins.user_id = :user_id)";

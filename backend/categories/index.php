@@ -4,7 +4,7 @@ require_once '../config/db.php';
 
 header('Content-Type: application/json');
 
-$stmt = $pdo->prepare("SELECT id, name, slug, color FROM categories");
+$stmt = $pdo->prepare("SELECT id, name, slug, color, icon FROM categories");
 $stmt->execute();
 $categories = $stmt->fetchAll();
 

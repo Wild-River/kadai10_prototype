@@ -20,11 +20,18 @@ function MapVIew({ user }) {
   const [editingPin, setEditingPin] = useState(null);
 
   const addMarkerToMap = (pin) => {
-    const pinElement = new google.maps.marker.PinElement({
+    const pinElementOptions = {
       background: pin.color || '#666',
       borderColor: 'white',
       scale: 1.2,
-    });
+    };
+
+    if (pin.icon) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 -1050 960 960" fill="white"><path d="${pin.icon}"></path></svg>`;
+      pinElementOptions.glyphSrc = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    }
+
+    const pinElement = new google.maps.marker.PinElement(pinElementOptions);
 
     const marker = new google.maps.marker.AdvancedMarkerElement({
       position: { lat: Number(pin.lat), lng: Number(pin.lng) },
@@ -70,22 +77,14 @@ function MapVIew({ user }) {
       data.pins.forEach(addMarkerToMap);
     };
     initMap();
-
-    return () => {
-      // ここがクリーンアップ処理
-      // この先マーカーにクリックイベントを付けたとき(例えば「地図をクリックして新規ピン作成」のリスナー)。
-      // イベントリスナーはコンポーネントが消えても自動では外れない
-      // google.maps.event.clearInstanceListeners(mapInstanceRef.current);
-    };
-
-    // pinsを取得し、AdvancedMarkerElement+PinElementでマーカーを立てる(backgroundにcategory.colorを使う)
-    // 各マーカーにクリックリスナーを追加、クリックしたpinのidをstateに持つ
   }, [mapId]); // mapIdが変わったら再実行
 
   return (
-    <>
-      <button onClick={() => setMapId((prev) => (prev === MAP_IDS.monochro ? MAP_IDS.normal : MAP_IDS.monochro))}>地図スタイル切替</button>
-      <div id='map' style={{ height: 800 }} ref={mapRef}></div>
+    <div id='map-container'>
+      <button className='map-style-toggle' onClick={() => setMapId((prev) => (prev === MAP_IDS.monochro ? MAP_IDS.normal : MAP_IDS.monochro))}>
+        地図スタイル切替
+      </button>
+      <div id='map' ref={mapRef}></div>
       {(isPanelOpen || editingPin) && (
         <PinPanel
           lat={editingPin ? editingPin.pin.lat : pin.lat}
@@ -123,7 +122,7 @@ function MapVIew({ user }) {
           }}
         />
       )}
-    </>
+    </div>
   );
 }
 

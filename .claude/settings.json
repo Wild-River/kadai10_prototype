@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:8888/kadai10_prototype/uploads/pins/pin_6a6b476f45b597.22088871.jpg\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:8888/kadai10_prototype/uploads/pins/pin_6a6b49102196a1.83897008.jpg\")",
+      "Read(//Applications/MAMP/htdocs/kadai09_auth/assets/css/**)",
+      "Bash(python3 -c ' *)"
+    ]
+  }
+}

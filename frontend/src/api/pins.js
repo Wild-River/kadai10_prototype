@@ -7,9 +7,8 @@ export async function getPins() {
     return res.json();
 }
 
-export async function createPin({ id, categoryId, name, lat, lng, status, tags = [], blocks = [] }) {
+export async function createPin({ categoryId, name, lat, lng, status, tags = [], blocks = [] }) {
     const params = new URLSearchParams();
-    params.append('id', id);
     params.append('category_id', categoryId);
     params.append('name', name);
     params.append('lat', lat);

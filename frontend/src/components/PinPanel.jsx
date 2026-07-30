@@ -3,6 +3,8 @@ import { getCategories } from '../api/categories';
 import { getTags } from '../api/tags';
 import { createPin, uploadImage, updatePin } from '../api/pins';
 
+const BACKEND_ORIGIN = 'http://localhost:8888';
+
 function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
   const [categoryId, setCategoryId] = useState(editingPin ? editingPin.pin.category_id : '');
   const [name, setName] = useState(editingPin ? editingPin.pin.name : '');
@@ -115,56 +117,69 @@ function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className='detail-panel open'>
+    <form onSubmit={handleSubmit} id='detail-edit-form' className='detail-panel open'>
       {error && <p className='form-error'>{error}</p>}
       {/* 保存/キャンセルボタン。.detail-panelのCSSクラスを使う 並び替えは後日実装*/}
 
-      {/* カテゴリ */}
-      <select name='' id='' value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
-        <option value=''>選択してください</option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
+      <label>
+        ジャンル
+        <select name='' id='' value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+          <option value=''>選択してください</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label>
+        名前
+        <input type='text' value={name} onChange={(e) => setName(e.target.value)} />
+      </label>
+
+      <label>
+        ステータス
+        <select name='' id='' value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value='draft'>下書き</option>
+          <option value='published'>公開</option>
+        </select>
+      </label>
+
+      <fieldset>
+        <legend>タグ</legend>
+        {tags.map((tag) => (
+          <label key={tag.id}>
+            <input type='checkbox' checked={selectedTagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
+            {tag.name}
+          </label>
         ))}
-      </select>
+      </fieldset>
 
-      {/* 名前 */}
-      <input type='text' value={name} onChange={(e) => setName(e.target.value)} />
-
-      {/* ステータス */}
-      <select name='' id='' value={status} onChange={(e) => setStatus(e.target.value)}>
-        <option value='draft'>下書き</option>
-        <option value='published'>公開</option>
-      </select>
-
-      {/* タグ */}
-      {tags.map((tag) => (
-        <label key={tag.id}>
-          <input type='checkbox' checked={selectedTagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
-          {tag.name}
-        </label>
-      ))}
-
-      {/* ブロック */}
       {blocks.map((block, index) => (
-        <div key={block.id}>
-          {block.type === 'text' ? <textarea value={block.content} onChange={(e) => updateBlockContent(index, e.target.value)} /> : <span>{block.file ? block.file.name : '画像未選択'}</span>}
-          <button type='button' onClick={() => removeBlock(index)}>
-            削除
-          </button>
+        <div key={block.id} className='block-item'>
+          <div className='block-header'>
+            <div className='block-controls'>
+              <button type='button' className='block-delete' onClick={() => removeBlock(index)}>
+                ×
+              </button>
+            </div>
+          </div>
+          {block.type === 'text' ? <textarea className='block-text' value={block.content} onChange={(e) => updateBlockContent(index, e.target.value)} /> : <img className='block-image-preview' src={block.url ? `${BACKEND_ORIGIN}${block.url}` : block.file ? URL.createObjectURL(block.file) : ''} alt='' />}
         </div>
       ))}
 
-      {/* 追加ボタン */}
-      <button type='button' onClick={addTextBlock}>
-        {' '}
-        + テキスト
-      </button>
-      <button type='button' onClick={() => document.getElementById('image-input').click()}>
-        {' '}
-        + 画像
-      </button>
+      <div className='block-add-buttons'>
+        <button type='button' onClick={addTextBlock}>
+          {' '}
+          + テキスト
+        </button>
+        <button type='button' onClick={() => document.getElementById('image-input').click()}>
+          {' '}
+          + 画像
+        </button>
+      </div>
+
       <input
         type='file'
         id='image-input'

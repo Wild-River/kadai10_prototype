@@ -49,6 +49,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = $e->getMessage();
     }
 
+    $checkStmt = $pdo->prepare("SELECT id FROM pins WHERE id = :id AND user_id = :user_id");
+    $checkStmt->bindValue(':id', $id, PDO::PARAM_INT);
+    $checkStmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
+    $checkStmt->execute();
+
+    if (!$checkStmt->fetch()) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => '対象の投稿が見つかりません']);
+        exit;
+    }
+
     $sql = "UPDATE pins SET category_id = :category_id, name = :name, lat = :lat, lng = :lng, status = :status WHERE id = :id AND user_id = :user_id";
     $stmt = $pdo->prepare($sql);
 
@@ -62,14 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $stmt->execute();
-        $affectedRows = $stmt->rowCount(); // ここで確保
-
-        // 他人のpinを消そうとした/編集しようとした場合
-        if ($affectedRows === 0) {
-            http_response_code(404); // または403
-            echo json_encode(['success' => false, 'message' => '対象の投稿が見つかりません']);
-            exit;
-        }
 
         $deleteBlockSql = "DELETE FROM pin_blocks WHERE pin_id = :pin_id";
         $deleteBlockStmt = $pdo->prepare($deleteBlockSql);
