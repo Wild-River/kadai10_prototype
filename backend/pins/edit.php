@@ -24,6 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
     $postTagIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $sql = "SELECT type, content, url, sort_order FROM pin_blocks WHERE pin_id = :id ORDER BY sort_order";
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+    $postBlocks = $stmt->fetchAll();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -64,6 +70,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => '対象の投稿が見つかりません']);
             exit;
         }
+
+        $deleteBlockSql = "DELETE FROM pin_blocks WHERE pin_id = :pin_id";
+        $deleteBlockStmt = $pdo->prepare($deleteBlockSql);
+        $deleteBlockStmt->bindValue(':pin_id', $id, PDO::PARAM_INT);
+        $deleteBlockStmt->execute();
+
+        $blocks = $_POST['blocks'] ?? [];
+        foreach ($blocks as $index => $block) {
+            $sql = "INSERT INTO pin_blocks (pin_id, type, content, url, sort_order) VALUES (:pin_id, :type, :content, :url, :sort_order)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(':pin_id', $id, PDO::PARAM_STR);
+            $stmt->bindValue(':type', $block['type'], PDO::PARAM_STR);
+            $content = $block['type'] === 'text' ? $block['content'] : null;
+            $stmt->bindValue(':content', $content, is_null($content) ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $url = $block['type'] === 'image' ? $block['url'] : null;
+            $stmt->bindValue(':url', $url, is_null($url) ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $stmt->bindValue(':sort_order', $index, PDO::PARAM_INT);
+            $stmt->execute();
+        }
+
 
         $deleteSql = "DELETE FROM pin_tag WHERE pin_id = :pin_id";
         $deleteStmt = $pdo->prepare($deleteSql);

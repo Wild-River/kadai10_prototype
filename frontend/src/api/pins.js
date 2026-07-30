@@ -7,6 +7,45 @@ export async function getPins() {
     return res.json();
 }
 
-export async function getCategories() {
+export async function createPin({ categoryId, name, lat, lng, status, tags = [], blocks = [] }) {
+    const params = new URLSearchParams();
+    params.append('category_id', categoryId);
+    params.append('name', name);
+    params.append('lat', lat);
+    params.append('lng', lng);
+    params.append('status', status);
 
+    tags.forEach((tagId) => {
+        params.append('tags[]', tagId);
+    });
+
+    blocks.forEach((block, index) => {
+        params.append(`blocks[${index}][type]`, block.type);
+        if (block.type === 'text') {
+            params.append(`blocks[${index}][content]`, block.content)
+        } else if (block.type === 'image') {
+            params.append(`blocks[${index}][url]`, block.url)
+        }
+    });
+
+    const res = await fetch(`${BASE_URL}/create.php`, {
+        method: 'POST',
+        credentials: 'include',
+        body: params,
+    });
+    return res.json();
 }
+
+export async function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const res = await fetch(`${BASE_URL}/upload.php`, {
+        method: 'POST',
+        credentials: 'include',
+        // headers: { 'Content-Type': 'multipart/form-data' },← 自分でContent-Typeを指定してしまうと、boundary情報が抜け落ちてしまい、サーバー側($_FILES)がリクエストを正しく解析できなくなる
+        body: formData
+    })
+    return res.json();
+}
+

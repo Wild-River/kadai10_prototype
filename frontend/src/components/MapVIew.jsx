@@ -1,17 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
 import { loadGoogleMaps } from '../api/googleMaps';
 import { getPins } from '../api/pins';
+import PinPanel from './PinPanel';
 const MAP_IDS = {
   monochro: import.meta.env.VITE_GOOGLE_MAP_ID,
   normal: import.meta.env.VITE_GOOGLE_MAP_ID_NORMAL,
 };
 
 function MapVIew() {
-  // 地図オブジェクトを作成 useRefで保持する
-  const mapRef = useRef();
+  const mapRef = useRef(); // 地図オブジェクトを作成 useRefで保持する
   const mapInstanceRef = useRef(null);
   const [mapId, setMapId] = useState(MAP_IDS.monochro);
   const renderedMapIdRef = useRef(null);
+  const [pin, setPin] = useState({ lat: 0, lng: 0 });
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  const addMarkerToMap = (pin) => {
+    const pinElement = new google.maps.marker.PinElement({
+      background: pin.color || '#666',
+      borderColor: 'white',
+      scale: 1.2,
+    });
+
+    new google.maps.marker.AdvancedMarkerElement({
+      position: { lat: Number(pin.lat), lng: Number(pin.lng) },
+      map: mapInstanceRef.current, // 作ったばかりの地図インスタンス
+      content: pinElement.element,
+    });
+  };
 
   useEffect(() => {
     const initMap = async () => {
@@ -32,20 +48,15 @@ function MapVIew() {
       });
       renderedMapIdRef.current = mapId; //今回mapIdという値で地図を作ったことを保存
 
-      const data = await getPins();
-      data.pins.forEach((pin) => {
-        const pinElement = new google.maps.marker.PinElement({
-          background: pin.color || '#666',
-          borderColor: 'white',
-          scale: 1.2,
-        });
-
-        new google.maps.marker.AdvancedMarkerElement({
-          position: { lat: Number(pin.lat), lng: Number(pin.lng) },
-          map: mapInstanceRef.current, // 作ったばかりの地図インスタンス
-          content: pinElement.element,
-        });
+      mapInstanceRef.current.addListener('click', (event) => {
+        setIsPanelOpen(true); //ここでパネルを開く
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
+        setPin({ lat, lng });
       });
+
+      const data = await getPins();
+      data.pins.forEach(addMarkerToMap);
     };
     initMap();
 
@@ -62,7 +73,18 @@ function MapVIew() {
   return (
     <>
       <button onClick={() => setMapId((prev) => (prev === MAP_IDS.monochro ? MAP_IDS.normal : MAP_IDS.monochro))}>地図スタイル切替</button>
-      <div id='map' style={{ height: 500 }} ref={mapRef}></div>
+      <div id='map' style={{ height: 800 }} ref={mapRef}></div>
+      {isPanelOpen && (
+        <PinPanel
+          lat={pin.lat}
+          lng={pin.lng}
+          onClose={() => setIsPanelOpen(false)}
+          onCreated={(newPin) => {
+            addMarkerToMap(newPin);
+            setIsPanelOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }

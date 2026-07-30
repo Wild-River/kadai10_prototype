@@ -48,6 +48,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute();
             }
 
+            $blocks = $_POST['blocks'] ?? [];
+            foreach ($blocks as $index => $block) {
+                $sql = "INSERT INTO pin_blocks (pin_id, type, content, url, sort_order) VALUES (:pin_id, :type, :content, :url, :sort_order)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindValue(':pin_id', $pin_id, PDO::PARAM_INT);
+                $stmt->bindValue(':type', $block['type'], PDO::PARAM_STR);
+                $content = $block['type'] === 'text' ? $block['content'] : null;
+                $stmt->bindValue(':content', $content, is_null($content) ? PDO::PARAM_NULL : PDO::PARAM_STR);
+                $url = $block['type'] === 'image' ? $block['url'] : null;
+                $stmt->bindValue(':url', $url, is_null($url) ? PDO::PARAM_NULL : PDO::PARAM_STR);
+                $stmt->bindValue(':sort_order', $index, PDO::PARAM_INT);
+                $stmt->execute();
+            }
+
             echo json_encode(['success' => true, 'id' => $pin_id]);
         } catch (PDOException $e) {
             error_log($e->getMessage()); // 開発者向け：詳細はログへ
