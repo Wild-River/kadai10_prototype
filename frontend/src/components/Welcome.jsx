@@ -14,7 +14,7 @@ function Welcome({ user, setUser }) {
     <>
       <div id='header'>
         <span id='user-info'>{user.username}さん</span>
-        <h1 id='app-logo'>おでかけマップ</h1>
+        <h1 id='app-logo'>卒制プロトタイプ</h1>
         <div>
           <button id='logout-btn' onClick={handleLogout}>
             ログアウト

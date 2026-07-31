@@ -451,6 +451,14 @@
   color: var(--color-text-sub);
 }
 
+.block-list-label {
+  margin-top: 16px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-sub);
+}
+
 #detail-edit-form label:first-of-type {
   margin-top: 0;
 }

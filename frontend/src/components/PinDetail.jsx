@@ -44,6 +44,9 @@ function PinDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
 
   return (
     <div className='detail-panel open'>
+      <button type='button' className='detail-close' aria-label='閉じる' onClick={onClose}>
+        ×
+      </button>
       <div className='detail-body'>
         <span className='detail-category' style={{ background: pin.color }}>
           {pin.category_name}

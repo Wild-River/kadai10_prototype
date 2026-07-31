@@ -57,8 +57,8 @@ function MapVIew({ user }) {
       }
 
       mapInstanceRef.current = new google.maps.Map(mapRef.current, {
-        center: { lat: 35.67, lng: 139.7023 },
-        zoom: 15,
+        center: { lat: 35.6852, lng: 139.7528 },
+        zoom: 13,
         mapId,
         mapTypeControl: false, // 地図/航空写真
         streetViewControl: false, // ストリートビューの人形アイコン

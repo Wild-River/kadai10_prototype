@@ -118,87 +118,95 @@ function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
 
   return (
     <form onSubmit={handleSubmit} id='detail-edit-form' className='detail-panel open'>
-      {error && <p className='form-error'>{error}</p>}
-      {/* 保存/キャンセルボタン。.detail-panelのCSSクラスを使う 並び替えは後日実装*/}
+      <button type='button' className='detail-close' aria-label='閉じる' onClick={onClose}>
+        ×
+      </button>
+      <div className='detail-body'>
+        <h2>{editingPin ? 'スポットを編集' : '新しいスポットを追加'}</h2>
+        {error && <p className='form-error'>{error}</p>}
+        {/* 並び替えは後日実装 */}
 
-      <label>
-        ジャンル
-        <select name='' id='' value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
-          <option value=''>選択してください</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
+        <label>
+          ジャンル *
+          <select name='' id='' value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+            <option value=''>選択してください</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          名前 *
+          <input type='text' value={name} onChange={(e) => setName(e.target.value)} required />
+        </label>
+
+        <label>
+          ステータス
+          <select name='' id='' value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value='draft'>下書き</option>
+            <option value='published'>公開</option>
+          </select>
+        </label>
+
+        <fieldset>
+          <legend>タグ</legend>
+          {tags.map((tag) => (
+            <label key={tag.id}>
+              <input type='checkbox' checked={selectedTagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
+              {tag.name}
+            </label>
           ))}
-        </select>
-      </label>
+        </fieldset>
 
-      <label>
-        名前
-        <input type='text' value={name} onChange={(e) => setName(e.target.value)} />
-      </label>
+        <p className='block-list-label'>本文（ブロック） *</p>
 
-      <label>
-        ステータス
-        <select name='' id='' value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value='draft'>下書き</option>
-          <option value='published'>公開</option>
-        </select>
-      </label>
-
-      <fieldset>
-        <legend>タグ</legend>
-        {tags.map((tag) => (
-          <label key={tag.id}>
-            <input type='checkbox' checked={selectedTagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
-            {tag.name}
-          </label>
-        ))}
-      </fieldset>
-
-      {blocks.map((block, index) => (
-        <div key={block.id} className='block-item'>
-          <div className='block-header'>
-            <div className='block-controls'>
-              <button type='button' className='block-delete' onClick={() => removeBlock(index)}>
-                ×
-              </button>
+        {blocks.map((block, index) => (
+          <div key={block.id} className='block-item'>
+            <div className='block-header'>
+              <div className='block-controls'>
+                <button type='button' className='block-delete' onClick={() => removeBlock(index)}>
+                  ×
+                </button>
+              </div>
             </div>
+            {block.type === 'text' ? <textarea className='block-text' value={block.content} onChange={(e) => updateBlockContent(index, e.target.value)} /> : <img className='block-image-preview' src={block.url ? `${BACKEND_ORIGIN}${block.url}` : block.file ? URL.createObjectURL(block.file) : ''} alt='' />}
           </div>
-          {block.type === 'text' ? <textarea className='block-text' value={block.content} onChange={(e) => updateBlockContent(index, e.target.value)} /> : <img className='block-image-preview' src={block.url ? `${BACKEND_ORIGIN}${block.url}` : block.file ? URL.createObjectURL(block.file) : ''} alt='' />}
+        ))}
+
+        <div className='block-add-buttons'>
+          <button type='button' onClick={addTextBlock}>
+            {' '}
+            + テキスト
+          </button>
+          <button type='button' onClick={() => document.getElementById('image-input').click()}>
+            {' '}
+            + 画像
+          </button>
         </div>
-      ))}
 
-      <div className='block-add-buttons'>
-        <button type='button' onClick={addTextBlock}>
-          {' '}
-          + テキスト
-        </button>
-        <button type='button' onClick={() => document.getElementById('image-input').click()}>
-          {' '}
-          + 画像
-        </button>
-      </div>
+        <input
+          type='file'
+          id='image-input'
+          accept='image/*'
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const file = e.target.files[0]; // ユーザーが選んだファイル(1つ目)を取り出す
+            if (file) addImageBlock(file);
+            e.target.value = ''; // 同じファイルを選び直せるようにリセット
+          }}
+        />
 
-      <input
-        type='file'
-        id='image-input'
-        accept='image/*'
-        style={{ display: 'none' }}
-        onChange={(e) => {
-          const file = e.target.files[0]; // ユーザーが選んだファイル(1つ目)を取り出す
-          if (file) addImageBlock(file);
-          e.target.value = ''; // 同じファイルを選び直せるようにリセット
-        }}
-      />
-
-      <div className='detail-actions'>
-        <button type='button' className='btn-cancel' onClick={onClose}>
-          キャンセル
-        </button>
-        <button type='submit' className='btn-submit'>
-          保存
-        </button>
+        <div className='detail-actions'>
+          <button type='button' className='btn-cancel' onClick={onClose}>
+            キャンセル
+          </button>
+          <button type='submit' className='btn-submit'>
+            保存
+          </button>
+        </div>
       </div>
     </form>
   );

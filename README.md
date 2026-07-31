@@ -13,8 +13,10 @@ https://gs2026-arakawa.sakura.ne.jp/kadai10_proto/
 
 ## ④アプリのログイン用IDまたはPassword（ある場合）
 
-- ユーザー名：admin
-- パスワード：mypassword04
+一般ユーザーアカウント
+
+- ユーザー名：test1
+- パスワード：test1
 
 ## ⑤工夫した点・こだわった点
 
