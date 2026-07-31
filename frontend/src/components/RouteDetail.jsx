@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { getRoute, deleteRoute } from '../api/routes';
+import useConfirm from '../hooks/useConfirm';
+import useAlert from '../hooks/useAlert';
 
 function RouteDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
+  const { confirm, ConfirmDialog } = useConfirm();
+  const { alert, AlertDialog } = useAlert();
   const [route, setRoute] = useState(null);
   const [routeStops, setRouteStops] = useState([]);
 
@@ -17,50 +21,54 @@ function RouteDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
   if (!route) return null;
 
   const handleDelete = async () => {
-    const ok = window.confirm('このルートを削除してもよろしいですか？');
+    const ok = await confirm('このルートを削除してもよろしいですか？');
     if (!ok) return;
 
     try {
       const data = await deleteRoute(id);
       if (!data.success) {
-        alert(data.message);
+        await alert(data.message);
         return;
       }
       onDeleted();
     } catch (err) {
       console.error(err);
-      alert('削除に失敗しました');
+      await alert('削除に失敗しました');
     }
   };
 
   return (
-    <div className='detail-panel open'>
-      <div className='detail-body'>
-        <h2>{route.name}</h2>
+    <>
+      {ConfirmDialog}
+      {AlertDialog}
+      <div className='detail-panel open'>
+        <div className='detail-body'>
+          <h2>{route.name}</h2>
 
-        <ol>
-          {routeStops.map((stop) => (
-            <li key={stop.id}>{stop.name}</li>
-          ))}
-        </ol>
+          <ol>
+            {routeStops.map((stop) => (
+              <li key={stop.id}>{stop.name}</li>
+            ))}
+          </ol>
 
-        <div className='detail-actions'>
-          <button type='button' className='btn-cancel' onClick={onClose}>
-            閉じる
-          </button>
-          {route.user_id === currentUserId && (
-            <>
-              <button type='button' className='btn-edit' onClick={() => onEdit({ route, routeStops })}>
-                編集
-              </button>
-              <button type='button' className='btn-delete' onClick={handleDelete}>
-                削除
-              </button>
-            </>
-          )}
+          <div className='detail-actions'>
+            <button type='button' className='btn-cancel' onClick={onClose}>
+              閉じる
+            </button>
+            {route.user_id === currentUserId && (
+              <>
+                <button type='button' className='btn-edit' onClick={() => onEdit({ route, routeStops })}>
+                  編集
+                </button>
+                <button type='button' className='btn-delete' onClick={handleDelete}>
+                  削除
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

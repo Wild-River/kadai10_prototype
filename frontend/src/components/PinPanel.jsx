@@ -103,7 +103,7 @@ function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
       }
 
       const selectedCategory = categories.find((c) => String(c.id) === String(categoryId));
-      const resultPin = { id: editingPin ? editingPin.pin.id : data.id, lat, lng, color: selectedCategory?.color };
+      const resultPin = { id: editingPin ? editingPin.pin.id : data.id, lat, lng, color: selectedCategory?.color, icon: selectedCategory?.icon };
 
       if (editingPin) {
         onUpdated(resultPin);

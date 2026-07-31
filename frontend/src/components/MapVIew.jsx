@@ -6,6 +6,7 @@ import PinDetail from './PinDetail';
 import RouteForm from './RouteForm';
 import { getRoutes, getRoute } from '../api/routes';
 import RouteDetail from './RouteDetail';
+import useConfirm from '../hooks/useConfirm';
 
 const MAP_IDS = {
   monochro: import.meta.env.VITE_GOOGLE_MAP_ID,
@@ -28,6 +29,7 @@ function MapVIew({ user }) {
   const polylinesRef = useRef({}); // {[route.id]: polylineインスタンス}
   const [selectedRouteId, setSelectedRouteId] = useState('');
   const [editingRoute, setEditingRoute] = useState(null);
+  const { confirm, ConfirmDialog } = useConfirm();
 
   useEffect(() => {
     isRouteModeRef.current = isRouteMode;
@@ -102,7 +104,10 @@ function MapVIew({ user }) {
       });
       renderedMapIdRef.current = mapId; //今回mapIdという値で地図を作ったことを保存
 
-      mapInstanceRef.current.addListener('click', (event) => {
+      mapInstanceRef.current.addListener('click', async (event) => {
+        const ok = await confirm('この場所にピンを作成しますか？');
+        if (!ok) return;
+
         setIsPanelOpen(true); //ここでパネルを開く
         const lat = event.latLng.lat();
         const lng = event.latLng.lng();
@@ -120,10 +125,24 @@ function MapVIew({ user }) {
 
   return (
     <div id='map-container'>
+      {ConfirmDialog}
       <button className='map-style-toggle' onClick={() => setMapId((prev) => (prev === MAP_IDS.monochro ? MAP_IDS.normal : MAP_IDS.monochro))}>
         地図スタイル切替
       </button>
-      <button onClick={() => setIsRouteMode((prev) => !prev)}>{isRouteMode ? 'ルート作成をやめる' : 'ルート作成'}</button>
+      <button
+        className='route-mode-toggle'
+        onClick={async () => {
+          const next = !isRouteMode;
+          if (next) {
+            const ok = await confirm('ピンを選択してください');
+            if (!ok) return;
+          }
+          setIsRouteMode(next);
+        }}
+      >
+        {isRouteMode ? 'ルート作成をやめる' : 'ルート作成'}
+      </button>
+
       <div id='map' ref={mapRef}></div>
       {(isPanelOpen || editingPin) && (
         <PinPanel

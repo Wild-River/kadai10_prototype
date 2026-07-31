@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getPin, deletePin } from '../api/pins';
 import { getTags } from '../api/tags';
+import useConfirm from '../hooks/useConfirm';
+import useAlert from '../hooks/useAlert';
 
 const BACKEND_ORIGIN = import.meta.env.VITE_SITE_BASE_URL;
 
 function PinDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
+  const { confirm, ConfirmDialog } = useConfirm();
+  const { alert, AlertDialog } = useAlert();
   const [pin, setPin] = useState(null);
   const [pinTagIds, setPinTagIds] = useState([]);
   const [blocks, setBlocks] = useState([]);
@@ -26,69 +30,73 @@ function PinDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
   if (!pin) return null;
 
   const handleDelete = async () => {
-    const ok = window.confirm('この投稿を削除してもよろしいですか？');
+    const ok = await confirm('この投稿を削除してもよろしいですか？');
     if (!ok) return;
 
     try {
       const data = await deletePin(id);
       if (!data.success) {
-        alert(data.message);
+        await alert(data.message);
         return;
       }
       onDeleted();
     } catch (err) {
       console.log(err);
-      alert('削除に失敗しました');
+      await alert('削除に失敗しました');
     }
   };
 
   return (
-    <div className='detail-panel open'>
-      <button type='button' className='detail-close' aria-label='閉じる' onClick={onClose}>
-        ×
-      </button>
-      <div className='detail-body'>
-        <span className='detail-category' style={{ background: pin.color }}>
-          {pin.category_name}
-        </span>
-        <h2>{pin.name}</h2>
-        <div>
-          {tags
-            .filter((tag) => pinTagIds.includes(tag.id))
-            .map((tag) => (
-              <span key={tag.id} className='tag-chip'>
-                {tag.name}
-              </span>
-            ))}
-        </div>
+    <>
+      {ConfirmDialog}
+      {AlertDialog}
+      <div className='detail-panel open'>
+        <button type='button' className='detail-close' aria-label='閉じる' onClick={onClose}>
+          ×
+        </button>
+        <div className='detail-body'>
+          <span className='detail-category' style={{ background: pin.color }}>
+            {pin.category_name}
+          </span>
+          <h2>{pin.name}</h2>
+          <div>
+            {tags
+              .filter((tag) => pinTagIds.includes(tag.id))
+              .map((tag) => (
+                <span key={tag.id} className='tag-chip'>
+                  {tag.name}
+                </span>
+              ))}
+          </div>
 
-        {blocks.map((block, index) =>
-          block.type === 'text' ? (
-            <p key={index} className='detail-text-block'>
-              {block.content}
-            </p>
-          ) : (
-            <img key={index} className='detail-image-block' src={`${BACKEND_ORIGIN}${block.url}`} alt='' />
-          ),
-        )}
-
-        <div className='detail-actions'>
-          <button type='button' className='btn-cancel' onClick={onClose}>
-            閉じる
-          </button>
-          {pin.user_id === currentUserId && (
-            <>
-              <button type='button' className='btn-edit' onClick={() => onEdit({ pin, pinTagIds, blocks })}>
-                編集
-              </button>
-              <button type='button' className='btn-delete' onClick={handleDelete}>
-                削除
-              </button>
-            </>
+          {blocks.map((block, index) =>
+            block.type === 'text' ? (
+              <p key={index} className='detail-text-block'>
+                {block.content}
+              </p>
+            ) : (
+              <img key={index} className='detail-image-block' src={`${BACKEND_ORIGIN}${block.url}`} alt='' />
+            ),
           )}
+
+          <div className='detail-actions'>
+            <button type='button' className='btn-cancel' onClick={onClose}>
+              閉じる
+            </button>
+            {pin.user_id === currentUserId && (
+              <>
+                <button type='button' className='btn-edit' onClick={() => onEdit({ pin, pinTagIds, blocks })}>
+                  編集
+                </button>
+                <button type='button' className='btn-delete' onClick={handleDelete}>
+                  削除
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

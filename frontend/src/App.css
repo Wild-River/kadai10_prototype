@@ -61,6 +61,17 @@
   top: 12px;
   right: 12px;
   z-index: 100;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-white);
+}
+
+.route-mode-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  background-color: var(--color-primary);
+  color: var(--color-bg-white);
 }
 
 #welcome-screen {
