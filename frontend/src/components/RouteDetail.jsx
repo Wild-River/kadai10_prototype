@@ -3,6 +3,8 @@ import { getRoute, deleteRoute } from '../api/routes';
 import useConfirm from '../hooks/useConfirm';
 import useAlert from '../hooks/useAlert';
 
+const BACKEND_ORIGIN = import.meta.env.VITE_SITE_BASE_URL;
+
 function RouteDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
   const { confirm, ConfirmDialog } = useConfirm();
   const { alert, AlertDialog } = useAlert();
@@ -47,7 +49,10 @@ function RouteDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
 
           <ol>
             {routeStops.map((stop) => (
-              <li key={stop.id}>{stop.name}</li>
+              <li key={stop.id}>
+                {stop.name}
+                {stop.thumbnail_url && <img src={`${BACKEND_ORIGIN}${stop.thumbnail_url}`} alt='' className='route-stop-thumbnail' />}
+              </li>
             ))}
           </ol>
 

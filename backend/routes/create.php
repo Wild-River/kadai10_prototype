@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
         }
 
-        echo json_encode(['success' => true, 'route_stops' => $routeId]);
+        echo json_encode(['success' => true, 'id' => $routeId]);
     } catch (PDOException $e) {
         error_log($e->getMessage()); // 開発者向け：詳細はログへ
         http_response_code(500);

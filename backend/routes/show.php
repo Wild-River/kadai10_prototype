@@ -16,7 +16,9 @@ $stmt->bindValue(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
 $stmt->execute();
 $route = $stmt->fetch();
 
-$sql = "SELECT route_stops.id, route_stops.sort_order, pins.id AS pin_id, pins.name, pins.lat, pins.lng
+$sql = "SELECT route_stops.id, route_stops.sort_order, pins.id AS pin_id, pins.name, pins.lat, pins.lng,
+(SELECT url FROM pin_blocks WHERE pin_blocks.pin_id = pins.id AND pin_blocks.type = 'image' 
+ORDER BY pin_blocks.sort_order LIMIT 1) AS thumbnail_url
 FROM route_stops
 JOIN pins ON route_stops.pin_id = pins.id
 WHERE route_stops.route_id = :id ORDER BY route_stops.sort_order";

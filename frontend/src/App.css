@@ -315,6 +315,7 @@
 .detail-actions {
   display: flex;
   gap: 8px;
+  margin-block: 20px;
 }
 
 .detail-actions button {
@@ -624,6 +625,9 @@
   color: var(--color-text-sub);
   margin-top: 4px;
 }
+.tag-list {
+  margin-bottom: 24px;
+}
 
 .tag-chip {
   display: inline-block;
@@ -659,4 +663,30 @@
   gap: 4px;
   margin-top: 0;
   width: auto;
+}
+
+.detail-body ol {
+  list-style: none;
+  counter-reset: route-stop;
+}
+
+.detail-body ol li {
+  counter-increment: route-stop;
+  margin-bottom: 8px;
+}
+
+.detail-body ol li::before {
+  content: counter(route-stop) '.';
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.route-stop-thumbnail {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-block: 8px;
+  vertical-align: middle;
 }

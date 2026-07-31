@@ -59,7 +59,7 @@ function PinDetail({ id, currentUserId, onClose, onEdit, onDeleted }) {
             {pin.category_name}
           </span>
           <h2>{pin.name}</h2>
-          <div>
+          <div className='tag-list'>
             {tags
               .filter((tag) => pinTagIds.includes(tag.id))
               .map((tag) => (

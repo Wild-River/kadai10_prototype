@@ -71,16 +71,24 @@ function MapVIew({ user }) {
     const data = await getRoute(routeSummary.id);
     const path = data.route_stops.map((stop) => ({ lat: Number(stop.lat), lng: Number(stop.lng) }));
 
-    const polyline = new google.maps.Polyline({
+    const line = new google.maps.Polyline({
       path,
       map: mapInstanceRef.current,
       strokeColor: '#00A5FF',
       strokeWeight: 3,
     });
 
-    polylinesRef.current[routeSummary.id] = polyline;
+    // 見た目には出さず、クリック判定だけ広げるための太い線
+    const hitArea = new google.maps.Polyline({
+      path,
+      map: mapInstanceRef.current,
+      strokeOpacity: 0,
+      strokeWeight: 20,
+    });
 
-    polyline.addListener('click', () => {
+    polylinesRef.current[routeSummary.id] = { line, hitArea };
+
+    hitArea.addListener('click', () => {
       setSelectedRouteId(routeSummary.id);
     });
   };
@@ -191,7 +199,8 @@ function MapVIew({ user }) {
             setSelectedRouteId('');
           }}
           onDeleted={() => {
-            polylinesRef.current[selectedRouteId].setMap(null); //Polylineを消す
+            polylinesRef.current[selectedRouteId].line.setMap(null); //Polylineを消す
+            polylinesRef.current[selectedRouteId].hitArea.setMap(null);
             delete polylinesRef.current[selectedRouteId];
             setSelectedRouteId('');
           }}
@@ -201,23 +210,16 @@ function MapVIew({ user }) {
         <RouteForm
           pinIds={editingRoute ? editingRoute.routeStops.map((stop) => stop.pin_id) : selectedPinIds}
           editingRoute={editingRoute}
-          onSaved={() => {
+          onSaved={(routeId) => {
             if (editingRoute) {
-              polylinesRef.current[editingRoute.route.id].setMap(null);
+              polylinesRef.current[editingRoute.route.id].line.setMap(null);
+              polylinesRef.current[editingRoute.route.id].hitArea.setMap(null);
               delete polylinesRef.current[editingRoute.route.id];
-              addRouteToMap({ id: editingRoute.route.id });
-              setEditingRoute(null);
-            } else {
-              const path = selectedPinIds.map((id) => markersRef.current[id].position);
-              new google.maps.Polyline({
-                path,
-                map: mapInstanceRef.current,
-                strokeColor: '#00A5FF',
-                strokeWeight: 3,
-              });
-              setIsRouteMode(false);
-              setSelectedPinIds([]);
             }
+            addRouteToMap({ id: routeId });
+            setIsRouteMode(false);
+            setSelectedPinIds([]);
+            setEditingRoute(null);
           }}
           onCancel={() => {
             setIsRouteMode(false);
