@@ -14,10 +14,11 @@ export async function getRoute(id) {
     return res.json();
 }
 
-export async function createRoute({ name, status, routeStops = [] }) {
+export async function createRoute({ name, status, travelMode, routeStops = [] }) {
     const params = new URLSearchParams();
     params.append('name', name);
     params.append('status', status);
+    params.append('travel_mode', travelMode);
 
     routeStops.forEach((pinId) => {
         params.append('route_stops[]', pinId);
@@ -31,11 +32,12 @@ export async function createRoute({ name, status, routeStops = [] }) {
     return res.json();
 }
 
-export async function updateRoute({ id, name, status, routeStops = [] }) {
+export async function updateRoute({ id, name, status, travelMode, routeStops = [] }) {
     const params = new URLSearchParams();
     params.append('id', id);
     params.append('name', name);
     params.append('status', status);
+    params.append('travel_mode', travelMode);
 
     routeStops.forEach((pinId) => {
         params.append('route_stops[]', pinId);

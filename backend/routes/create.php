@@ -9,13 +9,15 @@ $user_id = $_SESSION['user_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'] ?? '';
     $status = $_POST['status'] ?? 'draft';
+    $travelMode = $_POST['travel_mode'] ?? 'WALKING';
     $routeStops = $_POST['route_stops'] ?? [];
 
-    $sql = "INSERT INTO routes (user_id, name, status) VALUES (:user_id, :name, :status)";
+    $sql = "INSERT INTO routes (user_id, name, status, travel_mode) VALUES (:user_id, :name, :status, :travel_mode)";
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':user_id', $user_id, PDO::PARAM_STR);
     $stmt->bindValue(':name', $name, PDO::PARAM_STR);
     $stmt->bindValue(':status', $status, PDO::PARAM_STR);
+    $stmt->bindValue(':travel_mode', $travelMode, PDO::PARAM_STR);
 
     try {
         $stmt->execute();

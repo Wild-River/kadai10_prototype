@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { getCategories } from '../api/categories';
 import { getTags } from '../api/tags';
 import { createPin, uploadImage, updatePin } from '../api/pins';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import SortableItem from './SortableItem';
 
 const BACKEND_ORIGIN = import.meta.env.VITE_SITE_BASE_URL;
 
@@ -10,6 +13,13 @@ function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
   const [name, setName] = useState(editingPin ? editingPin.pin.name : '');
   const [status, setStatus] = useState(editingPin ? editingPin.pin.status : 'draft');
   const [selectedTagIds, setSelectedTagIds] = useState(editingPin ? editingPin.pinTagIds : []);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px以上動かして初めてドラッグとみなす
+      },
+    }),
+  );
 
   const [blocks, setBlocks] = useState(
     editingPin
@@ -116,6 +126,17 @@ function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
     }
   };
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setBlocks((prev) => {
+      const oldIndex = prev.findIndex((b) => b.id === active.id);
+      const newIndex = prev.findIndex((b) => b.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
   return (
     <form onSubmit={handleSubmit} id='detail-edit-form' className='detail-panel open'>
       <button type='button' className='detail-close' aria-label='閉じる' onClick={onClose}>
@@ -163,18 +184,35 @@ function PinPanel({ lat, lng, editingPin, onClose, onCreated, onUpdated }) {
 
         <p className='block-list-label'>本文（ブロック） *</p>
 
-        {blocks.map((block, index) => (
-          <div key={block.id} className='block-item'>
-            <div className='block-header'>
-              <div className='block-controls'>
-                <button type='button' className='block-delete' onClick={() => removeBlock(index)}>
-                  ×
-                </button>
-              </div>
-            </div>
-            {block.type === 'text' ? <textarea className='block-text' value={block.content} onChange={(e) => updateBlockContent(index, e.target.value)} /> : <img className='block-image-preview' src={block.url ? `${BACKEND_ORIGIN}${block.url}` : block.file ? URL.createObjectURL(block.file) : ''} alt='' />}
-          </div>
-        ))}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+            {blocks.map((block, index) => (
+              <SortableItem key={block.id} id={block.id}>
+                <div className='block-item'>
+                  {block.type === 'text' ? (
+                    <>
+                      <div className='block-header'>
+                        <div className='block-controls'>
+                          <button type='button' className='block-delete' onClick={() => removeBlock(index)}>
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                      <textarea className='block-text' value={block.content} onChange={(e) => updateBlockContent(index, e.target.value)} />
+                    </>
+                  ) : (
+                    <div className='block-image-wrapper'>
+                      <img className='block-image-preview' src={block.url ? `${BACKEND_ORIGIN}${block.url}` : block.file ? URL.createObjectURL(block.file) : ''} alt='' />
+                      <button type='button' className='block-image-remove' onClick={() => removeBlock(index)}>
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </SortableItem>
+            ))}
+          </SortableContext>
+        </DndContext>
 
         <div className='block-add-buttons'>
           <button type='button' onClick={addTextBlock}>

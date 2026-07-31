@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 
 $id = $_GET['id'] ?? '';
 
-$sql = "SELECT routes.id, routes.name, routes.status, routes.user_id
+$sql = "SELECT routes.id, routes.name, routes.status, routes.user_id, routes.travel_mode
 FROM routes
 WHERE routes.id = :id AND (routes.status = 'published' OR routes.user_id = :user_id)";
 

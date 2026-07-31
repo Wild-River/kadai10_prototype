@@ -69,28 +69,55 @@ function MapVIew({ user }) {
 
   const addRouteToMap = async (routeSummary) => {
     const data = await getRoute(routeSummary.id);
-    const path = data.route_stops.map((stop) => ({ lat: Number(stop.lat), lng: Number(stop.lng) }));
+    const stops = data.route_stops;
 
-    const line = new google.maps.Polyline({
-      path,
+    if (stops.length < 2) return; // 経路には最低2地点必要
+
+    // 「出発地」「目的地」「経由地(複数)」を分けて渡す必要がある
+    const origin = { lat: Number(stops[0].lat), lng: Number(stops[0].lng) };
+    const destination = { lat: Number(stops[stops.length - 1].lat), lng: Number(stops[stops.length - 1].lng) };
+    // 経由地
+    const waypoints = stops.slice(1, -1).map((stop) => ({
+      location: { lat: Number(stop.lat), lng: Number(stop.lng) },
+      stopover: true,
+    }));
+
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer({
       map: mapInstanceRef.current,
-      strokeColor: '#00A5FF',
-      strokeWeight: 3,
+      suppressMarkers: true, // 自前のピンマーカーと重複させない
+      polylineOptions: {
+        strokeColor: '#f5f543',
+        strokeWeight: 6,
+      },
     });
 
-    // 見た目には出さず、クリック判定だけ広げるための太い線
-    const hitArea = new google.maps.Polyline({
-      path,
-      map: mapInstanceRef.current,
-      strokeOpacity: 0,
-      strokeWeight: 20,
-    });
+    try {
+      const result = await directionsService.route({
+        origin,
+        destination,
+        waypoints,
+        travelMode: google.maps.TravelMode[data.route.travel_mode],
+      });
 
-    polylinesRef.current[routeSummary.id] = { line, hitArea };
+      directionsRenderer.setDirections(result);
 
-    hitArea.addListener('click', () => {
-      setSelectedRouteId(routeSummary.id);
-    });
+      // クリック判定用の透明な太い線(実際の道なりの座標=overview_pathを使う)
+      const hitArea = new google.maps.Polyline({
+        path: result.routes[0].overview_path,
+        map: mapInstanceRef.current,
+        strokeOpacity: 0,
+        strokeWeight: 20,
+      });
+
+      polylinesRef.current[routeSummary.id] = { directionsRenderer, hitArea };
+
+      hitArea.addListener('click', () => {
+        setSelectedRouteId(routeSummary.id);
+      });
+    } catch (err) {
+      console.error('経路の取得に失敗しました', err);
+    }
   };
 
   useEffect(() => {
@@ -142,7 +169,7 @@ function MapVIew({ user }) {
         onClick={async () => {
           const next = !isRouteMode;
           if (next) {
-            const ok = await confirm('ピンを選択してください');
+            const ok = await confirm('ルートを作成します。ピンを選択してください');
             if (!ok) return;
           }
           setIsRouteMode(next);
@@ -199,7 +226,7 @@ function MapVIew({ user }) {
             setSelectedRouteId('');
           }}
           onDeleted={() => {
-            polylinesRef.current[selectedRouteId].line.setMap(null); //Polylineを消す
+            polylinesRef.current[selectedRouteId].directionsRenderer.setMap(null); // 経路の描画を消す
             polylinesRef.current[selectedRouteId].hitArea.setMap(null);
             delete polylinesRef.current[selectedRouteId];
             setSelectedRouteId('');
@@ -212,7 +239,7 @@ function MapVIew({ user }) {
           editingRoute={editingRoute}
           onSaved={(routeId) => {
             if (editingRoute) {
-              polylinesRef.current[editingRoute.route.id].line.setMap(null);
+              polylinesRef.current[editingRoute.route.id].directionsRenderer.setMap(null);
               polylinesRef.current[editingRoute.route.id].hitArea.setMap(null);
               delete polylinesRef.current[editingRoute.route.id];
             }

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { createRoute, updateRoute } from '../api/routes';
 import { getPin } from '../api/pins';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import SortableItem from './SortableItem';
 
 const BACKEND_ORIGIN = import.meta.env.VITE_SITE_BASE_URL;
 
@@ -9,6 +12,14 @@ function RouteForm({ pinIds, editingRoute, onSaved, onCancel }) {
   const [status, setStatus] = useState(editingRoute ? editingRoute.route.status : 'draft');
   const [error, setError] = useState('');
   const [stopDetails, setStopDetails] = useState([]);
+  const [travelMode, setTravelMode] = useState(editingRoute ? editingRoute.route.travel_mode : 'WALKING');
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px以上動かして初めてドラッグとみなす
+      },
+    }),
+  );
 
   useEffect(() => {
     const fetchStopDetails = async () => {
@@ -22,7 +33,9 @@ function RouteForm({ pinIds, editingRoute, onSaved, onCancel }) {
     e.preventDefault();
 
     try {
-      const data = editingRoute ? await updateRoute({ id: editingRoute.route.id, name, status, routeStops: pinIds }) : await createRoute({ name, status, routeStops: pinIds });
+      const orderedPinIds = stopDetails.map((s) => s.id);
+
+      const data = editingRoute ? await updateRoute({ id: editingRoute.route.id, name, status, travelMode, routeStops: orderedPinIds }) : await createRoute({ name, status, travelMode, routeStops: orderedPinIds });
 
       if (!data.success) {
         setError(data.message);
@@ -34,6 +47,21 @@ function RouteForm({ pinIds, editingRoute, onSaved, onCancel }) {
       console.error(err);
       setError('保存に失敗しました');
     }
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setStopDetails((prev) => {
+      const oldIndex = prev.findIndex((s) => s.id === active.id);
+      const newIndex = prev.findIndex((s) => s.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
+  const removeStop = (id) => {
+    setStopDetails((prev) => prev.filter((s) => s.id !== id));
   };
 
   return (
@@ -54,19 +82,36 @@ function RouteForm({ pinIds, editingRoute, onSaved, onCancel }) {
           </select>
         </label>
 
+        <label htmlFor=''>
+          交通手段
+          <select value={travelMode} onChange={(e) => setTravelMode(e.target.value)}>
+            <option value='WALKING'>徒歩</option>
+            <option value='DRIVING'>車</option>
+            <option value='BICYCLING'>自転車</option>
+            <option value='TRANSIT'>公共交通機関</option>
+          </select>
+        </label>
+
         <p>選択中のピン: {pinIds.length}件</p>
 
-        <ol>
-          {stopDetails.map((stop) => {
-            const firstImage = stop.blocks?.find((block) => block.type === 'image');
-            return (
-              <li key={stop.id}>
-                {stop.name}
-                {firstImage && <img src={`${BACKEND_ORIGIN}${firstImage.url}`} alt='' className='route-stop-thumbnail' />}
-              </li>
-            );
-          })}
-        </ol>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={stopDetails.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+            {stopDetails.map((stop) => {
+              const firstImage = stop.blocks?.find((block) => block.type === 'image');
+              return (
+                <SortableItem key={stop.id} id={stop.id}>
+                  {stop.name}
+                  <div className='route-stop-media'>
+                    {firstImage && <img src={`${BACKEND_ORIGIN}${firstImage.url}`} alt='' className='route-stop-thumbnail' />}
+                    <button type='button' onClick={() => removeStop(stop.id)} className='route-stop-remove'>
+                      ×
+                    </button>
+                  </div>
+                </SortableItem>
+              );
+            })}
+          </SortableContext>
+        </DndContext>
 
         <div className='detail-actions'>
           <button type='button' className='btn-cancel' onClick={onCancel}>
