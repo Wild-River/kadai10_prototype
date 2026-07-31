@@ -7,6 +7,13 @@ export async function getPins() {
     return res.json();
 }
 
+export async function getPin(id) {
+    const res = await fetch(`${BASE_URL}/show.php?id=${id}`, {
+        credentials: 'include',
+    });
+    return res.json();
+}
+
 export async function createPin({ categoryId, name, lat, lng, status, tags = [], blocks = [] }) {
     const params = new URLSearchParams();
     params.append('category_id', categoryId);
@@ -49,12 +56,6 @@ export async function uploadImage(file) {
     return res.json();
 }
 
-export async function getPin(id) {
-    const res = await fetch(`${BASE_URL}/show.php?id=${id}`, {
-        credentials: 'include',
-    });
-    return res.json();
-}
 
 export async function updatePin({ id, categoryId, name, lat, lng, status, tags = [], blocks = [] }) {
     const params = new URLSearchParams();

@@ -3,6 +3,10 @@ import { loadGoogleMaps } from '../api/googleMaps';
 import { getPins } from '../api/pins';
 import PinPanel from './PinPanel';
 import PinDetail from './PinDetail';
+import RouteForm from './RouteForm';
+import { getRoutes, getRoute } from '../api/routes';
+import RouteDetail from './RouteDetail';
+
 const MAP_IDS = {
   monochro: import.meta.env.VITE_GOOGLE_MAP_ID,
   normal: import.meta.env.VITE_GOOGLE_MAP_ID_NORMAL,
@@ -18,6 +22,16 @@ function MapVIew({ user }) {
   const [selectedPinId, setSelectedPinId] = useState('');
   const markersRef = useRef({}); // {[pin.id] : markerインスタンス}
   const [editingPin, setEditingPin] = useState(null);
+  const [isRouteMode, setIsRouteMode] = useState(false);
+  const isRouteModeRef = useRef(false);
+  const [selectedPinIds, setSelectedPinIds] = useState([]);
+  const polylinesRef = useRef({}); // {[route.id]: polylineインスタンス}
+  const [selectedRouteId, setSelectedRouteId] = useState('');
+  const [editingRoute, setEditingRoute] = useState(null);
+
+  useEffect(() => {
+    isRouteModeRef.current = isRouteMode;
+  }, [isRouteMode]);
 
   const addMarkerToMap = (pin) => {
     const pinElementOptions = {
@@ -41,9 +55,31 @@ function MapVIew({ user }) {
 
     markersRef.current[pin.id] = marker;
 
-    // マーカーにgmp-clickイベントを追加し、クリックされたらstateで保持する
+    // ルート作成モード中は「選択済みピンのトグル」そうでなければ「詳細表示」
     marker.addListener('gmp-click', () => {
-      setSelectedPinId(pin.id);
+      if (isRouteModeRef.current) {
+        setSelectedPinIds((prev) => (prev.includes(pin.id) ? prev.filter((id) => id !== pin.id) : [...prev, pin.id]));
+      } else {
+        setSelectedPinId(pin.id);
+      }
+    });
+  };
+
+  const addRouteToMap = async (routeSummary) => {
+    const data = await getRoute(routeSummary.id);
+    const path = data.route_stops.map((stop) => ({ lat: Number(stop.lat), lng: Number(stop.lng) }));
+
+    const polyline = new google.maps.Polyline({
+      path,
+      map: mapInstanceRef.current,
+      strokeColor: '#00A5FF',
+      strokeWeight: 3,
+    });
+
+    polylinesRef.current[routeSummary.id] = polyline;
+
+    polyline.addListener('click', () => {
+      setSelectedRouteId(routeSummary.id);
     });
   };
 
@@ -75,6 +111,9 @@ function MapVIew({ user }) {
 
       const data = await getPins();
       data.pins.forEach(addMarkerToMap);
+
+      const routesData = await getRoutes();
+      routesData.routes.forEach(addRouteToMap);
     };
     initMap();
   }, [mapId]); // mapIdが変わったら再実行
@@ -84,6 +123,7 @@ function MapVIew({ user }) {
       <button className='map-style-toggle' onClick={() => setMapId((prev) => (prev === MAP_IDS.monochro ? MAP_IDS.normal : MAP_IDS.monochro))}>
         地図スタイル切替
       </button>
+      <button onClick={() => setIsRouteMode((prev) => !prev)}>{isRouteMode ? 'ルート作成をやめる' : 'ルート作成'}</button>
       <div id='map' ref={mapRef}></div>
       {(isPanelOpen || editingPin) && (
         <PinPanel
@@ -119,6 +159,51 @@ function MapVIew({ user }) {
             markersRef.current[selectedPinId].map = null; // 地図からマーカーを消す
             delete markersRef.current[selectedPinId];
             setSelectedPinId('');
+          }}
+        />
+      )}
+      {selectedRouteId && (
+        <RouteDetail
+          id={selectedRouteId}
+          currentUserId={user.id}
+          onClose={() => setSelectedRouteId('')}
+          onEdit={(data) => {
+            setEditingRoute(data);
+            setSelectedRouteId('');
+          }}
+          onDeleted={() => {
+            polylinesRef.current[selectedRouteId].setMap(null); //Polylineを消す
+            delete polylinesRef.current[selectedRouteId];
+            setSelectedRouteId('');
+          }}
+        />
+      )}
+      {((isRouteMode && selectedPinIds.length > 0) || editingRoute) && (
+        <RouteForm
+          pinIds={editingRoute ? editingRoute.routeStops.map((stop) => stop.pin_id) : selectedPinIds}
+          editingRoute={editingRoute}
+          onSaved={() => {
+            if (editingRoute) {
+              polylinesRef.current[editingRoute.route.id].setMap(null);
+              delete polylinesRef.current[editingRoute.route.id];
+              addRouteToMap({ id: editingRoute.route.id });
+              setEditingRoute(null);
+            } else {
+              const path = selectedPinIds.map((id) => markersRef.current[id].position);
+              new google.maps.Polyline({
+                path,
+                map: mapInstanceRef.current,
+                strokeColor: '#00A5FF',
+                strokeWeight: 3,
+              });
+              setIsRouteMode(false);
+              setSelectedPinIds([]);
+            }
+          }}
+          onCancel={() => {
+            setIsRouteMode(false);
+            setSelectedPinIds([]);
+            setEditingRoute(null);
           }}
         />
       )}
