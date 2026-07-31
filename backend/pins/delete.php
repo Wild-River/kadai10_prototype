@@ -26,6 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (PDOException $e) {
         error_log($e->getMessage()); // 開発者向け：詳細はログへ
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => '投稿の保存に失敗しました。時間をおいて再度お試しください。']);
+        echo json_encode(['success' => false, 'message' => '削除に失敗しました。時間をおいて再度お試しください。']);
     }
 }

@@ -93,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
         }
 
-
         $deleteSql = "DELETE FROM pin_tag WHERE pin_id = :pin_id";
         $deleteStmt = $pdo->prepare($deleteSql);
         $deleteStmt->bindValue(':pin_id', $id, PDO::PARAM_INT);

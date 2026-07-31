@@ -38,12 +38,10 @@ function LoginForm({ setUser, setShowRegister }) {
         </label>
         <button type='submit'>ログイン</button>
       </form>
-      <p>
-        アカウントをお持ちでない方はこちらから登録してください。
-        <button type='button' onClick={() => setShowRegister(true)}>
-          ユーザー登録
-        </button>
-      </p>
+      <p>アカウントをお持ちでない方はこちらから登録してください。</p>
+      <button type='button' onClick={() => setShowRegister(true)}>
+        ユーザー登録
+      </button>
     </div>
   );
 }
