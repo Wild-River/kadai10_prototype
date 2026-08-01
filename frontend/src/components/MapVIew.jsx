@@ -86,6 +86,7 @@ function MapVIew({ user }) {
     const directionsRenderer = new google.maps.DirectionsRenderer({
       map: mapInstanceRef.current,
       suppressMarkers: true, // 自前のピンマーカーと重複させない
+      preserveViewport: true, //ルート描画時に地図を自動でフィットさせない
       polylineOptions: {
         strokeColor: '#f5f543',
         strokeWeight: 6,
@@ -129,9 +130,24 @@ function MapVIew({ user }) {
         return;
       }
 
+      Object.values(markersRef.current).forEach((marker) => {
+        marker.map = null;
+      });
+      markersRef.current = {};
+
+      Object.values(polylinesRef.current).forEach(({ directionsRenderer, hitArea }) => {
+        directionsRenderer.setMap(null);
+        hitArea.setMap(null);
+      });
+      polylinesRef.current = {};
+
+      // 既存の地図があれば、現在の中心・ズームを引き継ぐ
+      const prevCenter = mapInstanceRef.current?.getCenter();
+      const prevZoom = mapInstanceRef.current?.getZoom();
+
       mapInstanceRef.current = new google.maps.Map(mapRef.current, {
-        center: { lat: 35.6852, lng: 139.7528 },
-        zoom: 13,
+        center: prevCenter ? { lat: prevCenter.lat(), lng: prevCenter.lng() } : { lat: 35.6852, lng: 139.7528 },
+        zoom: prevZoom ?? 13,
         mapId,
         mapTypeControl: false, // 地図/航空写真
         streetViewControl: false, // ストリートビューの人形アイコン
