@@ -190,9 +190,9 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.filter-chip.active {
+/* .filter-chip.active {
   color: var(--color-bg-white);
-}
+} */
 
 /* 投稿・編集モーダル */
 .detail-actions .btn-cancel {

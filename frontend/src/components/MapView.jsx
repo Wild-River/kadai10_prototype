@@ -7,13 +7,14 @@ import RouteForm from './RouteForm';
 import { getRoutes, getRoute } from '../api/routes';
 import RouteDetail from './RouteDetail';
 import useConfirm from '../hooks/useConfirm';
+import FilterBar from './FilterBar';
 
 const MAP_IDS = {
   monochro: import.meta.env.VITE_GOOGLE_MAP_ID,
   normal: import.meta.env.VITE_GOOGLE_MAP_ID_NORMAL,
 };
 
-function MapVIew({ user }) {
+function MapView({ user }) {
   const mapRef = useRef(); // 地図オブジェクトを作成 useRefで保持する
   const mapInstanceRef = useRef(null);
   const [mapId, setMapId] = useState(MAP_IDS.monochro);
@@ -30,6 +31,7 @@ function MapVIew({ user }) {
   const [selectedRouteId, setSelectedRouteId] = useState('');
   const [editingRoute, setEditingRoute] = useState(null);
   const { confirm, ConfirmDialog } = useConfirm();
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
   useEffect(() => {
     isRouteModeRef.current = isRouteMode;
@@ -54,6 +56,8 @@ function MapVIew({ user }) {
       map: mapInstanceRef.current, // 作ったばかりの地図インスタンス
       content: pinElement.element,
     });
+
+    marker.pinCategoryId = pin.category_id;
 
     markersRef.current[pin.id] = marker;
 
@@ -174,6 +178,13 @@ function MapVIew({ user }) {
     initMap();
   }, [mapId]); // mapIdが変わったら再実行
 
+  useEffect(() => {
+    Object.values(markersRef.current).forEach((marker) => {
+      const matches = selectedCategoryId === null || marker.pinCategoryId === selectedCategoryId;
+      marker.map = matches ? mapInstanceRef.current : null;
+    });
+  }, [selectedCategoryId]);
+
   return (
     <div id='map-container'>
       {ConfirmDialog}
@@ -193,6 +204,8 @@ function MapVIew({ user }) {
       >
         {isRouteMode ? 'ルート作成をやめる' : 'ルート作成'}
       </button>
+
+      <FilterBar selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} />
 
       <div id='map' ref={mapRef}></div>
       {(isPanelOpen || editingPin) && (
@@ -275,4 +288,4 @@ function MapVIew({ user }) {
   );
 }
 
-export default MapVIew;
+export default MapView;

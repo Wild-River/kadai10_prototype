@@ -3,7 +3,7 @@ import './App.css';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Welcome from './components/Welcome';
-import MapVIew from './components/MapVIew';
+import MapView from './components/MapView';
 import { me } from './api/auth';
 
 function App() {
@@ -32,7 +32,7 @@ function App() {
       {user ? (
         <>
           <Welcome user={user} setUser={setUser} />
-          <MapVIew user={user} />
+          <MapView user={user} />
         </>
       ) : showRegister ? (
         <RegisterForm setUser={setUser} setShowRegister={setShowRegister} />
