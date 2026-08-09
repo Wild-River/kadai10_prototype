@@ -191,19 +191,21 @@ function MapView({ user }) {
       <button className='map-style-toggle' onClick={() => setMapId((prev) => (prev === MAP_IDS.monochro ? MAP_IDS.normal : MAP_IDS.monochro))}>
         地図スタイル切替
       </button>
-      <button
-        className='route-mode-toggle'
-        onClick={async () => {
-          const next = !isRouteMode;
-          if (next) {
-            const ok = await confirm('ルートを作成します。ピンを選択してください');
-            if (!ok) return;
-          }
-          setIsRouteMode(next);
-        }}
-      >
-        {isRouteMode ? 'ルート作成をやめる' : 'ルート作成'}
-      </button>
+      {!editingRoute && (
+        <button
+          className='route-mode-toggle'
+          onClick={async () => {
+            const next = !isRouteMode;
+            if (next) {
+              const ok = await confirm('ルートを作成します。ピンを選択してください');
+              if (!ok) return;
+            }
+            setIsRouteMode(next);
+          }}
+        >
+          {isRouteMode ? 'ルート作成をやめる' : 'ルート作成'}
+        </button>
+      )}
 
       <FilterBar selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} />
 
@@ -252,6 +254,8 @@ function MapView({ user }) {
           onClose={() => setSelectedRouteId('')}
           onEdit={(data) => {
             setEditingRoute(data);
+            setSelectedPinIds(data.routeStops.map((stop) => stop.pin_id));
+            setIsRouteMode(true);
             setSelectedRouteId('');
           }}
           onDeleted={() => {
@@ -264,7 +268,8 @@ function MapView({ user }) {
       )}
       {((isRouteMode && selectedPinIds.length > 0) || editingRoute) && (
         <RouteForm
-          pinIds={editingRoute ? editingRoute.routeStops.map((stop) => stop.pin_id) : selectedPinIds}
+          pinIds={selectedPinIds}
+          setPinIds={setSelectedPinIds}
           editingRoute={editingRoute}
           onSaved={(routeId) => {
             if (editingRoute) {

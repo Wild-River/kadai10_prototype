@@ -7,7 +7,7 @@ import SortableItem from './SortableItem';
 
 const BACKEND_ORIGIN = import.meta.env.VITE_SITE_BASE_URL;
 
-function RouteForm({ pinIds, editingRoute, onSaved, onCancel }) {
+function RouteForm({ pinIds, setPinIds, editingRoute, onSaved, onCancel }) {
   const [name, setName] = useState(editingRoute ? editingRoute.route.name : '');
   const [status, setStatus] = useState(editingRoute ? editingRoute.route.status : 'draft');
   const [error, setError] = useState('');
@@ -62,6 +62,7 @@ function RouteForm({ pinIds, editingRoute, onSaved, onCancel }) {
 
   const removeStop = (id) => {
     setStopDetails((prev) => prev.filter((s) => s.id !== id));
+    setPinIds((prev) => prev.filter((pinId) => pinId !== id));
   };
 
   return (
@@ -93,6 +94,7 @@ function RouteForm({ pinIds, editingRoute, onSaved, onCancel }) {
         </label>
 
         <p>選択中のピン: {pinIds.length}件</p>
+        <p className='route-hint'>地図上のピンをクリックすると追加・解除できます</p>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={stopDetails.map((s) => s.id)} strategy={verticalListSortingStrategy}>
