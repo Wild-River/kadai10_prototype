@@ -14,18 +14,24 @@ function FilterBar({ selectedCategoryId, setSelectedCategoryId }) {
 
   return (
     <div id='filter-bar'>
-      {categories.map((category) => (
-        <button
-          key={category.id}
-          className={`filter-chip ${selectedCategoryId === category.id ? 'active' : ''}`}
-          style={{ backgroundColor: category.color, color: '#fff' }}
-          onClick={() => {
-            setSelectedCategoryId((prev) => (prev === category.id ? null : category.id));
-          }}
-        >
-          {category.name}
-        </button>
-      ))}
+      <button className={`filter-chip ${selectedCategoryId === null ? 'active' : ''}`} style={selectedCategoryId === null ? { backgroundColor: 'var(--color-primary)' } : undefined} onClick={() => setSelectedCategoryId(null)}>
+        すべて
+      </button>
+      {categories.map((category) => {
+        const isVisible = selectedCategoryId === null || selectedCategoryId === category.id;
+        return (
+          <button
+            key={category.id}
+            className={`filter-chip ${isVisible ? 'active' : ''}`}
+            style={isVisible ? { backgroundColor: category.color } : undefined}
+            onClick={() => {
+              setSelectedCategoryId((prev) => (prev === category.id ? null : category.id));
+            }}
+          >
+            {category.name}
+          </button>
+        );
+      })}
     </div>
   );
 }
