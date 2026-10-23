@@ -19,5 +19,8 @@ $options = [
 try {
     $pdo = new PDO($dbn, $user, $pwd, $options);
 } catch (PDOException $e) {
-    exit('DB接続失敗: ' . $e->getMessage());
+    error_log('DB接続失敗: ' . $e->getMessage()); // 開発者向け：詳細はログへ
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'サーバーエラーが発生しました。時間をおいて再度お試しください。']);
+    exit;
 }
