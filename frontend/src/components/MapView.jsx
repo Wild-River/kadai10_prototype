@@ -176,7 +176,7 @@ function MapView({ user }) {
       routesData.routes.forEach(addRouteToMap);
     };
     initMap();
-  }, [mapId]); // mapIdが変わったら再実行
+  }, [mapId, confirm]); // mapIdが変わったら再実行（confirmはuseCallbackで固定されているため再実行のきっかけにはならない）
 
   useEffect(() => {
     Object.values(markersRef.current).forEach((marker) => {

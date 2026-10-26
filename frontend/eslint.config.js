@@ -14,7 +14,10 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        google: 'readonly', // Google Maps SDK はscriptタグで読み込むため、グローバル変数として登録
+      },
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
