@@ -99,7 +99,7 @@ frontend/ (React + Vite)  ──fetch(JSON, Cookie)──▶  backend/ (PHP API)
 
 ### 開発環境と本番環境の切り替え
 
-- API の URL は Vite の環境変数（`.env.local` / `.env.production`）に、ビルド時のパスは `vite.config.js` の `base` に分けて設定し、コードを変更せずに環境を切り替えられるようにしました。
+- ローカルと本番で URL が異なるため、PHP の API とアップロード画像の場所は環境変数 `VITE_SITE_BASE_URL`（`.env.local` / `.env.production`）で、React の JS・CSS の読み込みパスは `vite.config.js` の `base` で切り替えています。`npm run dev` / `npm run build` を実行するだけで環境に合った設定になり、デプロイ時にコードを書き換える必要はありません。
 - API キーや DB の接続情報は `.env` に分けて、リポジトリには含めていません。
 
 ### 使いやすさ
