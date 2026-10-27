@@ -125,6 +125,15 @@ function MapView({ user }) {
     }
   };
 
+  // 地図からルートの描画を消す
+  const removeRouteFromMap = (routeId) => {
+    const polyline = polylinesRef.current[routeId];
+    if (!polyline) return;
+    polyline.directionsRenderer.setMap(null);
+    polyline.hitArea.setMap(null);
+    delete polylinesRef.current[routeId];
+  };
+
   useEffect(() => {
     const initMap = async () => {
       await loadGoogleMaps();
@@ -139,11 +148,7 @@ function MapView({ user }) {
       });
       markersRef.current = {};
 
-      Object.values(polylinesRef.current).forEach(({ directionsRenderer, hitArea }) => {
-        directionsRenderer.setMap(null);
-        hitArea.setMap(null);
-      });
-      polylinesRef.current = {};
+      Object.keys(polylinesRef.current).forEach(removeRouteFromMap);
 
       // 既存の地図があれば、現在の中心・ズームを引き継ぐ
       const prevCenter = mapInstanceRef.current?.getCenter();
@@ -259,9 +264,7 @@ function MapView({ user }) {
             setSelectedRouteId('');
           }}
           onDeleted={() => {
-            polylinesRef.current[selectedRouteId].directionsRenderer.setMap(null); // 経路の描画を消す
-            polylinesRef.current[selectedRouteId].hitArea.setMap(null);
-            delete polylinesRef.current[selectedRouteId];
+            removeRouteFromMap(selectedRouteId); // 経路の描画を消す
             setSelectedRouteId('');
           }}
         />
@@ -273,9 +276,7 @@ function MapView({ user }) {
           editingRoute={editingRoute}
           onSaved={(routeId) => {
             if (editingRoute) {
-              polylinesRef.current[editingRoute.route.id].directionsRenderer.setMap(null);
-              polylinesRef.current[editingRoute.route.id].hitArea.setMap(null);
-              delete polylinesRef.current[editingRoute.route.id];
+              removeRouteFromMap(editingRoute.route.id);
             }
             addRouteToMap({ id: routeId });
             setIsRouteMode(false);

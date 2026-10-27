@@ -89,7 +89,6 @@ function RouteForm({ pinIds, setPinIds, editingRoute, onSaved, onCancel }) {
             <option value='WALKING'>徒歩</option>
             <option value='DRIVING'>車</option>
             <option value='BICYCLING'>自転車</option>
-            <option value='TRANSIT'>公共交通機関</option>
           </select>
         </label>
 
